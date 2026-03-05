@@ -1,0 +1,27 @@
+Topics Covered in the System Design Lecture
+1. Database (DB)
+2. Auto Scaling Group (ASG)
+3. Database Replication
+4. Point-in-Time Recovery
+5. Sharding
+6. Leader Election
+7. Eventual Consistency
+8. Hash Function
+9. Single Region Critical Write
+10. Cluster Architecture
+11. Split Brain Problem
+12. Consistent Hashing
+13. Quorum
+14. Fencing Token
+15. Majority Token
+16. Re-sharding
+17. Mutex
+18. etcd
+19. Apache ZooKeeper
+20. Round Robin Load Balancing
+21. Sticky Sessions
+22. AWS CloudWatch
+23. Celebrity Problem
+24. Cross Shard Join
+25. Hotspot Problem
+26. PhonePe System Design Case Study 🚀

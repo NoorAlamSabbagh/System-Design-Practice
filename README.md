@@ -4,7 +4,7 @@ You can directly paste this into your `README.md`.
 ---
 
 # 🏗️ System Design Learning Repository
-
+Notes Link: https://app.eraser.io/workspace/SVBgeRmqA2BgKoaeHhct
 ## 📌 About This Repository
 
 This repository documents my journey of learning **System Design** concepts, patterns, and real-world architecture problems.
