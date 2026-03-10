@@ -1,1 +1,2 @@
 https://app.eraser.io/workspace/SVBgeRmqA2BgKoaeHhct
+https://medium.com/@codesprintpro/lessons-from-the-atlassian-outage-understanding-load-balancers-and-blue-green-deployment-4fb2778eab0e
