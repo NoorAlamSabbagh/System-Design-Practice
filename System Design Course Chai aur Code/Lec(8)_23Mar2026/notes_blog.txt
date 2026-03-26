@@ -1,3 +1,11 @@
-https://app.eraser.io/workspace/SVBgeRmqA2BgKoaeHhct
+https://link.excalidraw.com/readonly/yyiIal5GOJBwMizocsTj?darkMode=true
+https://www.amazon.in/High-Performance-Browser-Networking-Grigorik/dp/1449344763?&linkCode=sl2&tag=learncodeonli-21&linkId=3a24c28d9ec95dee0a326f39bfdfc325&ref_=as_li_ss_tl
+
+
+https://edge-cdn.learnyst.com/gweb-research2023-media/pubtools/4102.pdf
+
+https://blog.cloudflare.com/the-road-to-quic/
 
 https://link.excalidraw.com/readonly/yyiIal5GOJBwMizocsTj?darkMode=true
+
+https://discord.com/blog/how-discord-handles-two-and-half-million-concurrent-voice-users-using-webrtc
