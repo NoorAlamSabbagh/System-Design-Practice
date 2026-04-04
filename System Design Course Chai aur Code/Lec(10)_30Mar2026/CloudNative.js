@@ -34,3 +34,14 @@
 // - Nginx and Apache are both web servers used to serve web content, but they have different approaches to handling requests.
 // - Nginx is known for its high performance and efficiency in handling concurrent connections, making it a good choice for high-traffic websites.
 // - Apache is known for its flexibility and extensive module support, making it a good choice for applications that require a lot of customization.
+
+// ## 📌 5️⃣ Load Balancer
+// - A load balancer is a device or software that distributes incoming network traffic across multiple servers to ensure high availability and reliability of applications. It helps to prevent any single server from becoming a bottleneck by evenly distributing the workload. Load balancers can operate at different layers of the OSI model, such as Layer 4 (transport layer) or Layer 7 (application layer), and can use various algorithms (e.g., round-robin, least connections) to determine how to distribute traffic. Load balancers are essential for scaling applications and improving performance in cloud environments.
+
+//Laymen Explanation:
+// - A load balancer is like a traffic cop that directs incoming requests to multiple servers to ensure that no single server gets overwhelmed, improving the performance and reliability of applications.
+
+// Application Load Balancer vs Network Load Balancer Vs Gateway Load Balancer
+// - Application Load Balancer (ALB): Operates at the application layer (Layer 7) and is designed to handle HTTP and HTTPS traffic. It can make routing decisions based on content, such as URL paths or host headers, making it suitable for web applications.
+// - Network Load Balancer (NLB): Operates at the transport layer (Layer 4) and is designed to handle TCP traffic. It is optimized for high performance and can handle millions of requests per second while maintaining low latency, making it suitable for applications that require extreme performance.
+// - Gateway Load Balancer (GLB): Operates at the network layer (Layer 3) and is designed to handle traffic between virtual private clouds (VPCs) or between on-premises data centers and the cloud. It provides a single entry point for traffic and can route it to multiple targets based on various criteria, such as source IP address or destination port.
