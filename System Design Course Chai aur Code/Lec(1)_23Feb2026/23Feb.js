@@ -130,7 +130,7 @@
 // * Fault tolerant
 // * Used in large-scale systems
 
-// 👉 Modern systems prefer **Horizontal Scaling**
+// 👉 Modern systems prefer Horizontal Scaling
 // ## 🔹 2️⃣ Stateless vs Stateful Services
 // ### Stateless (Easy to scale)
 // * No session stored in server memory
@@ -141,7 +141,7 @@
 // * Stores session in memory
 // * Requires sticky sessions
 // * Harder for distributed systems
-// 👉 Always try to design **stateless APIs**
+// 👉 Always try to design stateless APIs
 
 // ## 🔹 3️⃣ Load Balancing
 // Types:
@@ -295,7 +295,8 @@
 // * Consensus
 
 // # 🏆 Golden Interview Line
-// > In distributed systems, partition tolerance is unavoidable. So during a partition, we must choose between consistency and availability depending on business needs.
+// > In distributed systems, partition tolerance is unavoidable. So during a partition, we must choose between consistency and 
+// availability depending on business needs.
 
 //<========================== (3) ⚖️ Load Balancing – Short Notes ==========================>//
 // ## 📌 Definition
