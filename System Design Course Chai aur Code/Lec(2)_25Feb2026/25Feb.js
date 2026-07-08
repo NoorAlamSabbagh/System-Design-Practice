@@ -29,12 +29,12 @@
 // 1. Database (DB)
 // A database is a structured collection of data that is stored and accessed electronically.
 // It allows for efficient storage, retrieval, and management of data.
-// Databases can be categorized into various types, such as relational databases (e.g., MySQL, PostgreSQL), 
+// Databases can be categorized into various types, such as relational databases (e.g., MySQL, PostgreSQL),
 // NoSQL databases (e.g., MongoDB, Cassandra), and in-memory databases (e.g., Redis).
 // Each type of database has its own advantages and use cases, depending on the requirements of the application being developed.
 
 // 2. Auto Scaling Group (ASG)
-// An Auto Scaling Group (ASG) is a feature provided by cloud service providers (like AWS) 
+// An Auto Scaling Group (ASG) is a feature provided by cloud service providers (like AWS)
 // that allows for automatic scaling of resources based on demand.
 // It helps maintain application availability and allows you to scale your Amazon EC2 capacity up or down automatically according to conditions you define.
 // ASGs can be configured to launch or terminate instances based on various metrics, such as CPU utilization, network traffic, or custom CloudWatch metrics.
@@ -59,7 +59,7 @@
 // Sharding can improve performance and scalability by distributing the load across multiple servers.
 // It is important to choose an appropriate sharding key to ensure even distribution of data and to minimize
 // cross-shard queries, which can be expensive in terms of performance.
-// Examples of sharding include horizontal sharding (where rows are distributed across shards) and vertical sharding 
+// Examples of sharding include horizontal sharding (where rows are distributed across shards) and vertical sharding
 // (where columns are distributed across shards).
 
 // 6. Leader Election
@@ -80,3 +80,25 @@
 // The output is usually a unique representation of the input data, and even small changes to the input can produce a significantly different hash code.
 // Hash functions are commonly used in various applications, such as data indexing, password storage, and distributed systems for tasks like sharding and load balancing.
 // A good hash function should have properties such as being deterministic, fast to compute, and producing a uniform distribution of hash codes to minimize collisions (where different inputs produce the same hash code).
+
+//20. Round Robin Load Balancing
+// Round Robin Load Balancing is a simple and widely used load balancing algorithm that distributes 
+// incoming requests evenly across a group of servers.
+// In this approach, each server in the pool is assigned a turn to handle incoming requests in a circular order.
+
+// For example, if there are three servers (A, B, and C), the first request goes to server A, 
+// the second request goes to server B, the third request goes to server C, and the fourth request goes back to server A, and so on.
+// Round Robin Load Balancing is easy to implement and works well when all servers have similar processing capabilities and workloads.
+// However, it may not be the most efficient approach in scenarios where servers have varying capacities
+//  or when requests have different processing times, as it does not take server load or response time into account.
+
+// 21. Sticky Sessions
+// Sticky Sessions, also known as session affinity, is a load balancing technique that ensures that a user's 
+// requests are consistently directed to the same server during a session.
+// This is particularly useful for applications that maintain user-specific state information on the server side, 
+// such as shopping carts or user preferences.
+// Sticky sessions can be implemented using cookies or URL parameters to track the user's session and route subsequent requests 
+// to the same server.
+// While sticky sessions can improve user experience by maintaining state, they can also lead to uneven load distribution
+//  and potential 
+// bottlenecks if certain servers become overloaded with requests from many users.
