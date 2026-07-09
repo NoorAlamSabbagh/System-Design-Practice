@@ -14,6 +14,10 @@
 // * Collaborative tools (Google Docs type)
 
 // ## 🧠 3️⃣ High-Level Architecture (Distributed System)
+//Distributed System : A distributed system is a system that consists of multiple independent components (servers, databases, etc.) 
+// that work together to provide a unified service. 
+// These components communicate over a network and can be located in different physical locations.
+// The goal of a distributed system is to achieve scalability, fault tolerance, and high availability.
 // Clients
 //    ↓
 // Load Balancer (WebSocket supported)
@@ -95,23 +99,35 @@
 // * Memory-heavy at large scale
 // * Best for real-time communication systems
 
+//PUB VS SUB: Pub/Sub is a messaging pattern where publishers send messages to a topic, and subscribers receive messages from that topic.
+//WebSocket VS CRON: WebSocket is a protocol for real-time communication, while CRON is a time-based job scheduler.
+//WebSocket allows continuous data exchange, whereas CRON executes tasks at scheduled intervals.
+//WebSocket VS REST API: WebSocket is a protocol for real-time, bidirectional communication,
+//while REST API is a stateless, request-response protocol. WebSocket is better for real-time applications, 
+//while REST API is better for simple CRUD operations.
+
 // ## 🚀 Advanced Concepts (For Senior-Level Prep)
-// * Backpressure handling
-// * Connection draining during deployments
-// * Load shedding
-// * Graceful shutdown
-// * WebSocket clustering
-// * Regional failover
-// * Rate limiting at gateway level
-// * WebRTC vs WebSocket
+// * Backpressure handling: When the server is overwhelmed, it can signal clients to slow down sending messages.
+// * Connection draining during deployments: When updating servers, gracefully close existing connections 
+// while allowing new connections to be established on updated servers.
+// * Load shedding: When the server is overloaded, it can reject new connections or drop messages to maintain stability.
+// * Graceful shutdown: When shutting down a server, it should finish processing existing connections before closing them,
+// * WebSocket clustering: Multiple WebSocket servers can be clustered together to share the load and provide high availability.
+// * Regional failover: If one region goes down, traffic can be rerouted to another region with minimal downtime.
+// * Rate limiting at gateway level: Implement rate limiting at the API gateway to prevent abuse and ensure fair usage across clients.
+// * WebRTC vs WebSocket: WebRTC is designed for peer-to-peer communication, while WebSocket is for server-client communication.
 
 // ## 🧩 Quick Revision Summary
-// * Persistent TCP connection
-// * Full-duplex communication
-// * Real-time data flow
-// * Stateful architecture
-// * Needs Redis/Kafka for scaling
-// * Use WSS + JWT
+// * Persistent TCP connection: Maintained throughout the lifecycle of the application. TCP means Transmission Control Protocol,
+//  which ensures reliable data transmission between client and server.
+// * Full-duplex communication : Both client and server can send messages simultaneously without waiting for a response.
+// * Real-time data flow : Enables instant updates and notifications, making it suitable for applications that require immediate feedback.
+// * Stateful architecture: The server maintains the state of each connection, which can lead to challenges in scaling and 
+// resource management.
+// * Needs Redis/Kafka for scaling: To handle multiple WebSocket servers and ensure that messages are delivered to the correct clients, 
+// a Pub/Sub system like Redis or Kafka is often used.
+// Kafka is a distributed streaming platform that allows for high-throughput, fault-tolerant messaging between producers and consumers.
+// * Use WSS + JWT 
 // * Avoid for simple CRUD APIs
 
 // # 🚀 SCALING – Important Points to Remember
@@ -145,15 +161,16 @@
 
 // ## 🔹 3️⃣ Load Balancing
 // Types:
-// * Round Robin
-// * Least Connections
-// * IP Hash
-// * Weighted Routing
+// * Round Robin: Distributes requests evenly across servers in a circular order.
+// * Least Connections: Directs traffic to the server with the fewest active connections, ensuring that no single server is overwhelmed.
+// * IP Hash: Uses the client's IP address to determine which server will handle the request, providing a consistent experience for users.
+// * Weighted Routing: Assigns weights to servers based on their capacity, directing more traffic to more powerful servers.
 
 // Tools:
-// * Nginx
-// * AWS ALB
-// * HAProxy
+// * Nginx: A popular open-source web server that can also function as a reverse proxy and load balancer.
+// * AWS ALB: Amazon Web Services Application Load Balancer, which automatically distributes incoming application traffic across
+//  multiple targets, such as EC2 instances.
+// * HAProxy: A high-performance TCP/HTTP load balancer that is widely used in production environments for its reliability and speed.
 
 // ## 🔹 4️⃣ Database Scaling
 // ### Read Scaling
@@ -185,6 +202,10 @@
 
 // ## 🔹 7️⃣ Asynchronous Processing
 // * Use message queues (Kafka, RabbitMQ)
+// Kafka Vs RabbitMQ: Kafka is designed for high-throughput, distributed messaging and is often used for real-time data streaming,
+// while RabbitMQ is a message broker that supports complex routing and is suitable for traditional messaging scenarios.
+//Layman's Explanation: Kafka is like a fast conveyor belt that can handle a lot of packages at once, while RabbitMQ is like a post office that sorts and delivers letters to the right people.
+// Other example for layman's explanation: Kafka is like a high-speed train that can carry many passengers (messages) at once, while RabbitMQ is like a bus that makes multiple stops to pick up and drop off passengers (messages) along the way.
 // * Background workers
 // * Improves performance
 // * Reduces response time
@@ -201,13 +222,13 @@
 // * Redundant servers
 // * Health checks
 // * Failover mechanisms
-
+//
 // ## 🔹 🔟 Key Scaling Keywords (Revision)
 // * Horizontal Scaling
 // * Vertical Scaling
 // * Load Balancer
 // * Stateless Services
-// * Replication
+// * Replication: Creating copies of data or services to ensure availability and fault tolerance.
 // * Sharding
 // * Caching
 // * Auto-scaling
@@ -330,7 +351,7 @@
 
 // ## 🔹 Common Algorithms
 // * Round Robin
-// * Least Connections
+// * Least Connections: Directs traffic to the server with the fewest active connections, ensuring that no single server is overwhelmed.
 // * IP Hash
 // * Weighted Round Robin
 
@@ -345,17 +366,10 @@
 
 
 // <=================== (4) 🔁 Reverse Proxy =====================>
-
 // ## 📌 Definition
-
-// A **Reverse Proxy** is a server that sits between clients and backend servers and forwards client requests to appropriate backend servers.
-
+// A Reverse Proxy is a server that sits between clients and backend servers and forwards client requests to appropriate backend servers.
 // Client → Reverse Proxy → Backend Servers
-
-// ---
-
 // ## 🧠 Why Used?
-
 // * Hide internal servers
 // * Improve security
 // * Load balancing
@@ -363,51 +377,33 @@
 // * Caching
 // * Rate limiting
 
-// ---
-
 // ## 🔹 How It Works
-
 // 1. Client sends request
 // 2. Reverse proxy receives it
 // 3. Forwards to backend server
 // 4. Returns response to client
 
 // Client never directly talks to backend.
-
-// ---
-
 // ## 🔹 Reverse Proxy vs Forward Proxy
-
 // ### Reverse Proxy
-
 // * Protects servers
 // * Used by backend systems
-
 // ### Forward Proxy
-
 // * Protects clients
 // * Used in corporate networks
 
-// ---
-
 // ## 🔹 Common Tools
-
 // * Nginx
 // * HAProxy
 // * AWS ALB
 // * Cloudflare
 
-// ---
-
 // ## 🔹 Benefits
-
 // * Security (hide IPs)
 // * Better scalability
 // * Centralized logging
 // * Load distribution
 // * SSL handling
-
-// ---
 
 // ## 🏆 Interview Line
 // > A reverse proxy sits in front of backend servers, forwards client requests, improves security, and helps with load balancing and scalability.
@@ -442,7 +438,6 @@
 // (2) Learnyst ChaiCode Traffic Spike Case Study
 // (3) Netflix, YouTube, and Hotstar Traffic Patterns 🚀
 
-
 // # 🚀 System Design Course – Key Takeaways
 // (1) Application Layer Scaling
 // Application Layer Scaling simply means making your app able to handle more users without slowing down.
@@ -460,7 +455,6 @@
 // It translates human-friendly domain names (like www.google.com) into IP addresses that computers use to identify each other on the network.
 // When you type a website name, your computer asks the DNS server for the corresponding IP address, and then it can connect to the website.
 
-
 // (3) Scale Up vs Scale Out
 // Scale Up (Vertical Scaling) means increasing the capacity of a single server (like adding more RAM or CPU).
 // Scale Out (Horizontal Scaling) means adding more servers to handle the load.
@@ -469,7 +463,8 @@
 // (4) Consistency in Distributed Systems
 // In distributed systems, consistency means that all users see the same data at the same time. 
 // However, achieving perfect consistency can be difficult due to network delays and failures. 
-// Systems often choose between strong consistency (where all users see the same data) and eventual consistency (where data may be temporarily inconsistent but will become consistent over time).
+// Systems often choose between strong consistency (where all users see the same data) and eventual consistency 
+// (where data may be temporarily inconsistent but will become consistent over time).
 
 // (5) Reverse Proxy
 // A Reverse Proxy is a server that sits in front of backend servers and forwards client requests to those servers. 
@@ -477,7 +472,8 @@
 
 // (6) VPC (Virtual Private Cloud)
 // A VPC is a private network in the cloud where you can launch your resources. 
-// It provides isolation and security for your applications, allowing you to control who can access your resources and how they communicate with each other. 
+// It provides isolation and security for your applications, allowing you to control who can access your resources 
+// and how they communicate with each other. 
 
 // (7) Pre-Warming and Bottlenecks
 // Pre-Warming is the process of preparing your servers to handle traffic spikes by running them before the actual traffic arrives. 
