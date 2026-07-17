@@ -27,3 +27,7 @@
 //Fan Out: Fan-out is a design pattern in event-driven architecture where a single event triggers multiple downstream processes or services. This allows for parallel processing and can improve system responsiveness and scalability. In a fan-out scenario, an event is published to multiple subscribers, each of which can handle the event independently, leading to increased throughput and reduced latency in processing tasks.
 
 //(4)HLS: HLS (HTTP Live Streaming) is a media streaming protocol developed by Apple that allows for the delivery of audio and video content over the internet. It works by breaking the media into small chunks and delivering them over HTTP, allowing for adaptive bitrate streaming and compatibility with a wide range of devices and platforms. HLS is widely used for live streaming and on-demand video services, providing a reliable and scalable solution for delivering multimedia content to users.
+
+//(5)Video Transcoding Services: Video transcoding services are responsible for converting video files from one format to another, often to ensure compatibility with different devices and platforms. These services can also optimize video quality and file size, enabling efficient streaming and playback. Transcoding can involve changing the video codec, resolution, bitrate, or container format, and is essential for delivering a seamless viewing experience across various devices and network conditions.
+
+//(6)Video Process FFMPEG: 

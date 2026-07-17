@@ -522,8 +522,7 @@
 // A Mutex (Mutual Exclusion) is a synchronization mechanism used to prevent multiple threads from accessing a shared resource simultaneously.
 // example:
 // In a caching system, if multiple requests try to update the same cache entry at the same time,
-// a mutex can be used to ensure that only one request updates the cache 
-// while others wait, preventing race conditions
+// a mutex can be used to ensure that only one request updates the cache while others wait, preventing race conditions
 
 // (17) Thundering Herd Problem
 // The Thundering Herd Problem occurs when a large number of requests hit the server at the same time, causing it to become overwhelmed. 
@@ -536,6 +535,10 @@
 // (19) Cache Jitter
 // Cache Jitter refers to the variability in response times due to cache misses and hits. 
 // When a cache entry expires, it can cause a spike in latency as the system retrieves data from the slower backend.
+//Jitter means variability or inconsistency in response times. In caching, it refers to the fluctuations in response times caused by cache misses and hits. 
+// When a cache entry expires,
+// it can lead to a sudden increase in latency as the system retrieves data from the slower backend, 
+// resulting in inconsistent response times for users.
 
 // (20) Stale-While-Revalidate (SWR)
 // SWR is a caching strategy where stale data is served while the cache is being refreshed in the background. 
