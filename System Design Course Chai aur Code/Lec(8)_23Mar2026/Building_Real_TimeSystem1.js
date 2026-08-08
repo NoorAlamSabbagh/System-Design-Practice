@@ -229,6 +229,126 @@
 // > Polling is a technique where the client repeatedly sends requests to the server at regular
 //  intervals to check whether new data or an update is available.
 
+
+//
+// #WebRTC vs WebSocket — Layman Term
+// Both are used for real-time communication, but they solve different problems.
+
+// #Simple analogy
+// Imagine a video call:
+// WebSocket → You and your friend communicate **through a server.
+// WebRTC → After connection setup, you can communicate **directly with your friend (peer-to-peer).
+
+// ## WebSocket
+// WebSocket creates a persistent connection between client and server.
+// Client A
+//    ↕
+// WebSocket Server
+//    ↕
+// Client B
+
+// The server can send data to clients immediately without the client repeatedly asking.
+// ### Example
+// A chat application:
+// Noor → "Hello"
+//         ↓
+//    WebSocket Server
+//         ↓
+// Aman → "Hello"
+
+// ### Used for
+// * 💬 Chat applications
+// * 🔔 Live notifications
+// * 📊 Live dashboards
+// * 🎮 Some multiplayer game communication
+// * Real-time updates
+
+// # WebRTC
+// WebRTC is designed for real-time audio, video, and peer-to-peer data communication.
+// Client A
+//     ↕
+//  Direct connection
+//     ↕
+// Client B
+
+// For example, in a video call:
+// Camera → WebRTC → Internet → WebRTC → Camera
+// Microphone → WebRTC → Internet → WebRTC → Speaker
+
+// The media doesn't normally need to continuously pass through your application server.
+
+// ### Used for
+// * 📹 Video calls
+// * 🎙️ Voice calls
+// * Screen sharing
+// * Live audio/video
+// * Peer-to-peer data transfer
+
+// Examples include technologies behind apps such as video conferencing systems.
+// # Important: WebRTC Still Needs a Server Initially
+// This is a common interview question.
+// WebRTC generally needs a signaling server to help two clients discover and connect to each other.
+// Client A
+//    │
+//    ├── Signaling ──> Server <── Signaling ──┤
+//    │                                         │
+//    └──────────── WebRTC connection ──────────┘
+
+// The signaling server helps exchange things like:
+// * IP/network information
+// * Connection details
+// * Session information
+// After connection establishment, media/data can flow peer-to-peer when possible.
+// # WebSocket vs WebRTC
+
+// | Feature          | WebSocket                             | WebRTC                               |
+// | ---------------- | ------------------------------------- | ------------------------------------ |
+// | Main purpose     | Real-time client-server communication | Real-time peer-to-peer communication |
+// | Connection       | Client ↔ Server                       | Peer ↔ Peer                          |
+// | Video/audio      | Possible, but not its main purpose    | Designed for it                    |
+// | Chat             | ✅ Excellent                          | Possible                            |
+// | Notifications    | ✅ Excellent                          | ❌ Not ideal                       |
+// | Screen sharing   | Not designed for it                   | ✅                                   |
+// | Low latency      | ✅                                    | Very good                      |
+// | Signaling server | Not required in same way              |Usually required                |
+// | NAT traversal    | Not its main concern                  | STUN/TURN/ICE                        |
+
+// ## Real Example: Video Calling App
+// Suppose you build a Zoom-like application.
+
+// You could use:
+// WebSocket
+//     ↓
+// Signaling
+//     ↓
+// WebRTC
+//     ↓
+// Audio + Video
+
+// ### WebSocket
+// Used for:
+// "User Noor wants to call Aman"
+// "Call accepted"
+// "Here are the connection details"
+// ### WebRTC
+// Used for:
+// 🎙️ Audio
+// 📹 Video
+// 🖥️ Screen sharing
+
+// ## Easy Memory Trick
+
+// > WebSocket = Real-time messages 💬
+// > WebRTC = Real-time media/data 🎥🎙️
+
+// Or:
+// >WebSocket → Client ↔ Server
+// > WebRTC → Peer ↔ Peer
+
+// ### Interview Answer
+// > WebSocket provides a persistent, bidirectional connection between a client and server and is commonly used for chat, notifications, and real-time updates.
+//  WebRTC is designed for low-latency peer-to-peer audio, video, screen sharing, and data communication. WebRTC typically uses a signaling server to establish the connection, but the actual media can then flow directly between peers when possible.
+
 //
 // Design a cache store
 //Eviction policy in system design is a strategy used to determine which items to remove from a cache when it reaches its capacity. The goal of an eviction policy is to optimize the performance of the cache by keeping the most relevant and frequently accessed data while removing less important or less frequently accessed data. Here are some common eviction policies:
