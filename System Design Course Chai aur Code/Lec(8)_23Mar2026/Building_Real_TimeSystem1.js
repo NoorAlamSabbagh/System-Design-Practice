@@ -9,7 +9,227 @@
 // For example, a near real-time system may process data and provide responses within a few seconds or milliseconds, but it may not guarantee that all responses will be delivered within a specific time frame. 
 // Near real-time systems are often used in applications where timely responses are important, but strict timing requirements are not necessary, such as in online gaming, social media platforms, and financial trading systems.
 
+//Note Most audio video used UDP protocol for real time communication because it is faster than TCP protocol. UDP is a connectionless protocol that does not guarantee delivery or order of packets, making it suitable for real-time applications where low latency is critical. In contrast, TCP is a connection-oriented protocol that provides reliable delivery and ordering of packets, but can introduce delays due to retransmissions and acknowledgments. Therefore, UDP is often preferred for real-time audio and video streaming, where timely delivery of data is more important than reliability.
 
+// ## TCP vs UDP — Layman Term
+// Think of sending a parcel 📦:
+// ### TCP = Reliable courier
+// TCP makes sure the data reaches correctly and in the right order.
+// You → TCP → Server
+//        ↓
+// "Did you receive packet 1?"
+// "Yes"
+// "Packet 2?"
+// "Yes"
+
+// If something is lost, TCP resends it.
+// Use TCP when correctness is more important than speed.
+// Examples:
+// * 🌐 Websites — HTTP/HTTPS
+// * 🔐 Secure communication
+// * 📧 Email
+// * 📁 File downloads/uploads
+// * 🗄️ Database connections
+// #UDP = Fast delivery
+// UDP simply sends the data without waiting for confirmation.
+// You → UDP → Server
+//        ↓
+//     Send and move on
+
+// If a packet is lost, UDP generally doesn't resend it itself.
+// Use UDP when speed/low latency is more important than perfect delivery.
+// Examples:
+// * 🎮 Online gaming
+// * 📞 Voice calls
+// * 📹 Video calls
+// * 📺 Live streaming
+// * ⚡ DNS queries
+
+// ## Simple Difference
+// | TCP                     | UDP                              |
+// | ----------------------- | -------------------------------- |
+// | Reliable                | Less reliable                    |
+// | Slower                  | Faster                           |
+// | Connection-oriented     | Connectionless                   |
+// | Resends lost data       | Doesn't guarantee retransmission |
+// | Data arrives in order   | Order isn't guaranteed           |
+// | Good for websites/files | Good for real-time communication |
+
+// ### Easy memory trick
+
+// >TCP = "Make sure everything arrives."
+// > UDP = "Send it quickly; don't wait."
+// Why do we need both?
+// Because different applications have different priorities.
+// Downloading a PDF:
+// Missing 1 byte ❌
+// → File can become corrupted
+// → TCP ✅
+
+// Video call:
+// Missing 1 video frame ❌
+// → Don't stop and wait
+// → Keep talking
+// → UDP ✅
+
+// That's why real-time applications commonly prefer UDP: a small amount of lost data is usually better than waiting 
+// for old data and increasing latency.
+
+//
+// #QUIC — Short Layman Explanation
+// QUIC is a modern network protocol built on top of UDP that tries to give you the speed of UDP + reliability/security features similar to TCP.
+// Think:
+// >TCP = reliable but can be slower
+// >UDP = fast but doesn't guarantee delivery
+// >QUIC = fast + reliable + secure
+
+// ### How it works
+// Traditional HTTPS:
+// HTTP
+//  ↓
+// TLS
+//  ↓
+// TCP
+//  ↓
+// IP
+
+// QUIC:
+// HTTP/3
+//  ↓
+// QUIC
+//  ↓
+// UDP
+//  ↓
+// IP
+// #Why was QUIC created?
+// TCP has some limitations.
+// For example, if one packet is lost:
+// Packet 1 ✅
+// Packet 2 ❌
+// Packet 3 ✅
+// Packet 4 ✅
+
+// TCP may need to wait for Packet 2
+// This can increase latency.
+// QUIC handles streams differently, so loss in one stream doesn't necessarily block unrelated streams.
+// #Important Features
+// * ⚡ Low latency
+// * 🔒 Encryption built in*using TLS 1.3
+// * 🔄 Reliable delivery
+// * 🚀 Faster connection establishment
+// * 📱 Better handling when network changes, such as switching Wi-Fi → mobile data
+// * 🌐 Used by HTTP/3
+// ### Where is QUIC used?
+// Commonly in:
+// * HTTP/3
+// * Modern web browsing
+// * Video streaming
+// * Mobile applications
+// * Real-time/high-latency-sensitive services
+
+// ### TCP vs UDP vs QUIC
+// |                     | TCP              | UDP               | QUIC       |
+// | ------------------- | ---------------- | ----------------- | ---------- |
+// | Reliable            | ✅                | ❌                 | ✅          |
+// | Fast                | Medium           | Very fast         | Very fast  |
+// | Encryption built in | ❌                | ❌                 | ✅          |
+// | Runs over           | IP               | IP                | UDP   |
+// | Used by             | HTTP/1.1, HTTP/2 | Gaming, DNS, etc. | HTTP/3 |
+
+// ### Interview one-liner
+// >QUIC is a modern, secure and reliable transport protocol built over UDP, designed to reduce latency and overcome some limitations of TCP,
+//  and it is the transport protocol used by HTTP/3.
+
+
+//
+// ## Polling — Layman Term
+// Polling means repeatedly asking the server: "Do you have any new data?"
+// Imagine you keep calling your friend:
+// > "Any update?"
+// > "No."
+// > "Any update now?"
+// > "No."
+// > "Now?"
+// > "Yes!" 😄
+// That's polling.
+// ### How it works
+// Client                     Server
+//   │                           │
+//   │── Any new data? ─────────>│
+//   │<── No ────────────────────│
+//   │                           │
+//   │── Any new data? ─────────>│
+//   │<── No ────────────────────│
+//   │                           │
+//   │── Any new data? ─────────>│
+//   │<── Yes, here it is ───────│
+
+// The client keeps making requests at a fixed interval.
+// ## Example
+// Suppose your frontend wants to know whether a report is ready.
+// setInterval(() => {
+//   fetch("/api/report/status");
+// }, 5000);
+
+// Every 5 seconds:
+// Client → "Is report ready?"
+// Server → "No"
+
+// 5 seconds later...
+// Client → "Is report ready?"
+// Server → "Yes"
+
+// ## Types of Polling
+// ### 1. Short Polling
+// Request at a fixed interval.
+// Every 5 seconds → Request
+
+// Simple, but can create many unnecessary requests.
+// ### 2. Long Polling
+
+// Client asks the server:
+// > "Tell me when something happens."
+// The server keeps the request open until new data is available or a timeout occurs.
+// Client ──────────────── Request ───────────────> Server
+//                                                 │
+//                                                 │ waits...
+//                                                 │
+// Client <──────────── New data ────────────────── Server
+// Then the client sends another request.
+// ## Polling vs WebSocket
+
+// | Polling                     | WebSocket                    |
+// | --------------------------- | ---------------------------- |
+// | Client repeatedly asks      | Server can push data         |
+// | HTTP requests repeatedly    | Persistent connection        |
+// | More unnecessary requests   | More efficient for real-time |
+// | Simple                      | More complex                 |
+// | Good for occasional updates | Good for real-time updates   |
+
+// ### Example
+// Polling:
+// "Is my order delivered?"
+// "Is my order delivered?"
+// "Is my order delivered?"
+
+// WebSocket:
+// Server → "Your order has been delivered!"
+
+// ### When to use Polling?
+// Use polling when real-time updates aren't critical
+
+// Examples:
+// * Checking report generation status
+// * Checking payment status
+// * Checking background job status
+// * Simple notifications
+// * Refreshing dashboards periodically
+
+// ### Interview one-liner
+// > Polling is a technique where the client repeatedly sends requests to the server at regular
+//  intervals to check whether new data or an update is available.
+
+//
 // Design a cache store
 //Eviction policy in system design is a strategy used to determine which items to remove from a cache when it reaches its capacity. The goal of an eviction policy is to optimize the performance of the cache by keeping the most relevant and frequently accessed data while removing less important or less frequently accessed data. Here are some common eviction policies:
 //1. LRU (Least Recently Used): Evict the least recently accessed item when the cache is full.
