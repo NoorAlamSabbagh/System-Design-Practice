@@ -1,4 +1,15 @@
 //<============Lec8: Building Real time Applications - Part 2 ============>
+//(1)MediaSoup is a popular open-source library that provides a framework for building real-time communication applications, 
+//such as video conferencing and live streaming. It is designed to handle WebRTC connections and provides features like media routing, recording, and broadcasting. MediaSoup allows developers to create scalable and efficient real-time applications by managing the complexities of WebRTC and providing a high-level API for handling media streams.
+
+//(2)What is the real time system: A real-time system is a type of computer system that is designed to process data and provide responses within a specified time constraint.
+//These systems are often used in applications where timely and predictable responses are critical, such as in industrial control systems, robotics, telecommunications, 
+//and multimedia applications. Real-time systems can be classified into two main categories: hard real-time systems, which have strict timing requirements and must meet deadlines, and soft real-time systems, which have more flexible timing requirements and can tolerate some delays.
+//(3)What is near real time system: A near real-time system is a type of computer system that processes data and provides responses with minimal delay, but not necessarily within strict timing constraints.
+// For example, a near real-time system may process data and provide responses within a few seconds or milliseconds, but it may not guarantee that all responses will be delivered within a specific time frame. 
+// Near real-time systems are often used in applications where timely responses are important, but strict timing requirements are not necessary, such as in online gaming, social media platforms, and financial trading systems.
+
+
 // Design a cache store
 //Eviction policy in system design is a strategy used to determine which items to remove from a cache when it reaches its capacity. The goal of an eviction policy is to optimize the performance of the cache by keeping the most relevant and frequently accessed data while removing less important or less frequently accessed data. Here are some common eviction policies:
 //1. LRU (Least Recently Used): Evict the least recently accessed item when the cache is full.
