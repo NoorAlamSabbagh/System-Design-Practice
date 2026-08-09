@@ -1,19 +1,76 @@
 //<============Lec8: Building Real time Applications - Part 2 ============>
 //(1)MediaSoup is a popular open-source library that provides a framework for building real-time communication applications, 
-//such as video conferencing and live streaming. It is designed to handle WebRTC connections and provides features like media routing, recording, and broadcasting. MediaSoup allows developers to create scalable and efficient real-time applications by managing the complexities of WebRTC and providing a high-level API for handling media streams.
+//such as video conferencing and live streaming. It is designed to handle WebRTC connections and provides features like media routing, 
+//recording, and broadcasting. MediaSoup allows developers to create scalable and efficient real-time applications by managing the complexities 
+// of WebRTC and providing a high-level API for handling media streams.
+//MediaSoup vs WebRTC: MediaSoup is a server-side library that provides advanced features for building real-time communication applications,
+//while WebRTC is a browser-based technology that enables peer-to-peer communication. MediaSoup can be used in conjunction with WebRTC
+// to create more complex and scalable applications, as it handles the server-side aspects of media routing and management. 
+// In contrast, WebRTC focuses on enabling direct communication between clients without the need for a central server.
+// ### WebRTC vs MediaSoup — layman terms
+// Think of WebRTC as the technology for making a live call, while MediaSoup is a tool that helps you manage many people in that call.
+// |                | WebRTC                           | MediaSoup                            |
+// | -------------- | -------------------------------- | ------------------------------------ |
+// | What is it?    | Browser communication technology | Node.js-based media server framework |
+// | Main job       | Send audio/video between users   | Manage audio/video for many users    |
+// | Usually        | Browser ↔ Browser                | Browser ↔ MediaSoup Server ↔ Browser |
+// | Server needed? | Not necessarily                  | **Yes**                              |
+// | Best for       | Simple 1-to-1 calls              | Group calls, meetings, streaming     |
+// | Example        | Video call between 2 people      | Google Meet-like group meeting       |
 
-//(2)What is the real time system: A real-time system is a type of computer system that is designed to process data and provide responses within a specified time constraint.
+// ##Simple example
+// Without MediaSoup:
+// User A  <────────>  User B
+//         WebRTC
+
+// WebRTC directly sends video/audio between A and B.
+// For 2 people, this can work very well.
+
+// With MediaSoup:
+// User A ──┐
+// User B ──┤
+// User C ──┼──> MediaSoup Server
+// User D ──┤
+// User E ──┘
+
+// MediaSoup receives/manages the media streams and sends the appropriate streams to participants.
+
+// This is useful when you have many users, because you don't want every user's browser to send video separately to every other user.
+
+// ### One important point
+// MediaSoup is built on top of WebRTC concepts; it doesn't replace WebRTC.**
+
+// Think:
+// >WebRTC = language/rules for real-time audio & video communication
+// >MediaSoup = a powerful media server framework that uses WebRTC to build scalable real-time communication
+
+// ### Interview answer
+// // > "WebRTC is a browser technology that enables real-time audio and video communication. MediaSoup is a Node.js media server framework built around WebRTC that helps manage and scale real-time communication, 
+// // especially for group calls and large numbers of participants."
+
+// Easy memory trick:
+// 📞 WebRTC = makes the call
+// 🎛️ MediaSoup = manages the call
+
+
+//(2)What is the real time system: A real-time system is a type of computer system that is designed to process data and provide responses
+// within a specified time constraint.
 //These systems are often used in applications where timely and predictable responses are critical, such as in industrial control systems, robotics, telecommunications, 
-//and multimedia applications. Real-time systems can be classified into two main categories: hard real-time systems, which have strict timing requirements and must meet deadlines, and soft real-time systems, which have more flexible timing requirements and can tolerate some delays.
-//(3)What is near real time system: A near real-time system is a type of computer system that processes data and provides responses with minimal delay, but not necessarily within strict timing constraints.
+//and multimedia applications. Real-time systems can be classified into two main categories: hard real-time systems, which have strict timing requirements and must meet deadlines,
+// and soft real-time systems, which have more flexible timing requirements and can tolerate some delays.
+//(3)What is near real time system: A near real-time system is a type of computer system that processes data and provides responses with minimal delay, 
+// but not necessarily within strict timing constraints.
 // For example, a near real-time system may process data and provide responses within a few seconds or milliseconds, but it may not guarantee that all responses will be delivered within a specific time frame. 
 // Near real-time systems are often used in applications where timely responses are important, but strict timing requirements are not necessary, such as in online gaming, social media platforms, and financial trading systems.
 
-//Note Most audio video used UDP protocol for real time communication because it is faster than TCP protocol. UDP is a connectionless protocol that does not guarantee delivery or order of packets, making it suitable for real-time applications where low latency is critical. In contrast, TCP is a connection-oriented protocol that provides reliable delivery and ordering of packets, but can introduce delays due to retransmissions and acknowledgments. Therefore, UDP is often preferred for real-time audio and video streaming, where timely delivery of data is more important than reliability.
+//Note Most audio video used UDP protocol for real time communication because it is faster than TCP protocol. UDP is a connectionless protocol that does not guarantee delivery or order of packets,
+//  making it suitable for real-time applications where low latency is critical. In contrast, TCP is a connection-oriented protocol that provides reliable delivery and ordering of packets, 
+// but can introduce delays due to retransmissions and acknowledgments. Therefore, UDP is often preferred for real-time audio and video streaming, 
+// where timely delivery of data is more important than reliability.
 
 // ## TCP vs UDP — Layman Term
 // Think of sending a parcel 📦:
-// ### TCP = Reliable courier
+// ## TCP = Reliable courier
 // TCP makes sure the data reaches correctly and in the right order.
 // You → TCP → Server
 //        ↓
@@ -55,8 +112,7 @@
 // | Data arrives in order   | Order isn't guaranteed           |
 // | Good for websites/files | Good for real-time communication |
 
-// ### Easy memory trick
-
+// # Easy memory trick
 // >TCP = "Make sure everything arrives."
 // > UDP = "Send it quickly; don't wait."
 // Why do we need both?
@@ -114,7 +170,7 @@
 // QUIC handles streams differently, so loss in one stream doesn't necessarily block unrelated streams.
 // #Important Features
 // * ⚡ Low latency
-// * 🔒 Encryption built in*using TLS 1.3
+// * 🔒 Encryption built in using TLS 1.3
 // * 🔄 Reliable delivery
 // * 🚀 Faster connection establishment
 // * 📱 Better handling when network changes, such as switching Wi-Fi → mobile data
@@ -183,10 +239,9 @@
 // ### 1. Short Polling
 // Request at a fixed interval.
 // Every 5 seconds → Request
-
 // Simple, but can create many unnecessary requests.
-// ### 2. Long Polling
 
+// ### 2. Long Polling
 // Client asks the server:
 // > "Tell me when something happens."
 // The server keeps the request open until new data is available or a timeout occurs.
@@ -197,7 +252,6 @@
 // Client <──────────── New data ────────────────── Server
 // Then the client sends another request.
 // ## Polling vs WebSocket
-
 // | Polling                     | WebSocket                    |
 // | --------------------------- | ---------------------------- |
 // | Client repeatedly asks      | Server can push data         |
@@ -229,15 +283,14 @@
 // > Polling is a technique where the client repeatedly sends requests to the server at regular
 //  intervals to check whether new data or an update is available.
 
-
 //
 // #WebRTC vs WebSocket — Layman Term
 // Both are used for real-time communication, but they solve different problems.
 
 // #Simple analogy
 // Imagine a video call:
-// WebSocket → You and your friend communicate **through a server.
-// WebRTC → After connection setup, you can communicate **directly with your friend (peer-to-peer).
+// WebSocket → You and your friend communicate through a server.
+// WebRTC → After connection setup, you can communicate directly with your friend (peer-to-peer).
 
 // ## WebSocket
 // WebSocket creates a persistent connection between client and server.
@@ -274,9 +327,7 @@
 // For example, in a video call:
 // Camera → WebRTC → Internet → WebRTC → Camera
 // Microphone → WebRTC → Internet → WebRTC → Speaker
-
 // The media doesn't normally need to continuously pass through your application server.
-
 // ### Used for
 // * 📹 Video calls
 // * 🎙️ Voice calls
@@ -337,7 +388,6 @@
 // 🖥️ Screen sharing
 
 // ## Easy Memory Trick
-
 // > WebSocket = Real-time messages 💬
 // > WebRTC = Real-time media/data 🎥🎙️
 
@@ -347,11 +397,15 @@
 
 // ### Interview Answer
 // > WebSocket provides a persistent, bidirectional connection between a client and server and is commonly used for chat, notifications, and real-time updates.
-//  WebRTC is designed for low-latency peer-to-peer audio, video, screen sharing, and data communication. WebRTC typically uses a signaling server to establish the connection, but the actual media can then flow directly between peers when possible.
+//  WebRTC is designed for low-latency peer-to-peer audio, video, screen sharing, and data communication. WebRTC typically uses a signaling server to establish 
+// the connection, 
+// but the actual media can then flow directly between peers when possible.
 
 //
 // Design a cache store
-//Eviction policy in system design is a strategy used to determine which items to remove from a cache when it reaches its capacity. The goal of an eviction policy is to optimize the performance of the cache by keeping the most relevant and frequently accessed data while removing less important or less frequently accessed data. Here are some common eviction policies:
+//Eviction policy in system design is a strategy used to determine which items to remove from a cache when it reaches its capacity.
+// The goal of an eviction policy is to optimize the performance of the cache by keeping the most relevant and frequently accessed data
+// while removing less important or less frequently accessed data. Here are some common eviction policies:
 //1. LRU (Least Recently Used): Evict the least recently accessed item when the cache is full.
 //2. LFU (Least Frequently Used): Evict the least frequently accessed item when the cache is full.
 //3. FIFO (First In First Out): Evict the oldest item in the cache when it is full.
@@ -370,7 +424,7 @@
 //systems to check the status of a resource or service at regular intervals.
 // It involves sending periodic requests to the resource or service to determine its availability
 // or to retrieve data. This method can be inefficient and may lead to increased latency and
-//  unnecessary network traffic, especially if the resource or service is frequently unavailable
+// unnecessary network traffic, especially if the resource or service is frequently unavailable
 // or if the polling interval is too short. Alternative approaches, such as event-driven architectures
 // or using message queues, can help reduce the drawbacks of simple polling by allowing for more
 // efficient communication and resource management.
@@ -403,3 +457,8 @@
 // The cache should store user profile data to improve response times and reduce database load.
 // The cache should implement an eviction policy to manage its capacity effectively.
 // Additionally, the cache should be designed to handle concurrent access from multiple users and ensure data consistency.
+
+//(6)WebSocket: WebSocket is a communication protocol that provides full-duplex communication channels over a single TCP connection.
+// It enables real-time data transfer between a client and server, allowing for low-latency communication and efficient use of network resources.
+// WebSocket is commonly used in applications such as chat applications, online gaming, and live streaming. It allows for bidirectional communication, 
+// where both the client and server can send and receive data simultaneously, making it suitable for real-time applications.
