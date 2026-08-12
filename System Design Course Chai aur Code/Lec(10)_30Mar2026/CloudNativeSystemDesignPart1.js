@@ -157,3 +157,114 @@
 // >Nginx = Fast traffic manager 🚦
 // >Apache = Flexible web server 🛠️
 
+
+// ### TCP means what here?
+// TCP = Transmission Control Protocol.
+// UDP = User Datagram Protocol.
+// In your AWS Security Group:
+// SSH → TCP → Port 22
+// TCP tells AWS which network protocol the traffic is using.
+// ### Layman Example
+// Think of TCP as a reliable delivery service📦.
+// Your Laptop
+//     ↓
+// TCP
+//     ↓
+// EC2 :22
+
+// TCP makes sure data is:
+// * ✅ Delivered reliably
+// * ✅ In the correct order
+// * ✅ Missing data is retransmitted
+
+// ### Why SSH uses TCP?
+// SSH needs a reliable connection between your computer and EC2.
+// SSH
+//  ↓
+// TCP
+//  ↓
+// Port 22
+//  ↓
+// EC2
+
+// So when you see:
+// Type: SSH
+// Protocol: TCP
+// Port: 22
+
+// It means:
+// >Allow SSH connections using TCP through port 22.
+
+// #Easy memory
+// > TCP = Reliable connection
+// > UDP = Fast connection, but no delivery guarantee
+
+// //Inbound and outbound security group in aws ec2:
+// #AWS EC2 Security Group — Inbound vs Outbound
+// Think of a Security Group as a security guard for your EC2 server 🛡️.
+// #Inbound = Coming IN 📥
+// Controls who can connect to your EC2 instance.
+// Internet
+//    ↓
+// Security Group
+//    ↓
+// EC2
+
+// Example:
+// Inbound Rule
+// SSH    TCP    22    Your IP
+// HTTP   TCP    80    Anywhere
+// HTTPS  TCP    443   Anywhere
+
+// Meaning:
+// Port 22 → You can SSH into EC2
+// Port 80 → Users can access HTTP website
+// Port 443 → Users can access HTTPS website
+
+// ### Outbound = Going OUT 📤
+// Controls what your EC2 instance can connect to.
+// EC2
+//  ↓
+// Security Group
+//  ↓
+// Internet / Other Services
+
+// Example:
+// Outbound Rule
+// All traffic → Anywhere
+
+// This allows your EC2 to:
+// * Download packages from the internet
+// * Call external APIs
+// * Connect to databases
+// * Access AWS services
+
+// ### Easy Difference
+// | Inbound 📥                          | Outbound 📤                            |
+// | ----------------------------------- | -------------------------------------- |
+// | Traffic into EC2                    | Traffic from EC2                 |
+// | Controls who can access your server | Controls where your server can connect |
+// | SSH, HTTP, HTTPS                    | API calls, downloads, DB connections   |
+
+// ### Your EC2 SSH Example
+// When you ran:
+// ssh -i "Noor.pem" ubuntu@15.252.106.34
+
+// You needed an Inbound Security Group rule:
+// Type: SSH
+// Protocol: TCP
+// Port: 22
+// Source: Your IP
+
+// Your Laptop
+//     │
+//     │ SSH :22 📥
+//     ↓
+// Security Group
+//     ↓
+// EC2
+
+// ### Interview One-Liner
+// > Inbound rules control incoming traffic to an EC2 instance,
+//  while outbound rules control traffic leaving the EC2 instance.
+
