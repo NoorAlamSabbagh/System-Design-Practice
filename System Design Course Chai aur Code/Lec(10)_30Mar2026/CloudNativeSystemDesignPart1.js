@@ -268,3 +268,244 @@
 // > Inbound rules control incoming traffic to an EC2 instance,
 //  while outbound rules control traffic leaving the EC2 instance.
 
+//
+// Elastic IP (EIP) in AWS:
+// Elastic IP is a static public IPv4 address that you reserve in AWS.
+// AWS can charge for public IPv4 addresses, including Elastic IPs, 
+// whether associated with a running resource or not.
+
+// ### Important difference
+// | IP type             | Example                             | Cost                                          |
+// | ------------------- | ----------------------------------- | --------------------------------------------- |
+// | Dynamic public IPv4 | `13.233.117.226`                    | Can incur public IPv4 charges while allocated |
+// | Elastic IP          | `13.x.x.x` reserved to your account | Public IPv4 charges apply                     |
+
+// Also, stopping your EC2 can change its public IP if it's not an Elastic IP.
+// If you want your EC2 to keep the same IP after stopping/restarting, you would normally use an Elastic IP.
+
+
+// //
+// #AWS Load Balancer — Layman Explanation
+// An AWS Load Balancer is like a traffic police officer sitting in front of your servers.
+// Suppose you have 3 EC2 servers:
+//                 Users
+//                   |
+//                   ↓
+//           AWS Load Balancer
+//            /       |       \
+//           ↓        ↓        ↓
+//        EC2 #1   EC2 #2   EC2 #3
+
+// Instead of users directly accessing one EC2, they access the **Load Balancer.
+// The Load Balancer decides which EC2 should handle each request.
+// #Why do we need it?
+// Imagine:
+// 1000 users
+//     |
+//     ↓
+//    EC2
+// One EC2 may become overloaded.
+// With a Load Balancer:
+//               1000 users
+//                   |
+//                   ↓
+//           Load Balancer
+//           /      |      \
+//          ↓       ↓       ↓
+//        EC2-1   EC2-2   EC2-3
+
+// The traffic is distributed among the servers.
+
+// It provides:
+// Load distribution
+// High availability
+// Health checks
+// Automatic routing
+// Scalability
+// Can work with Auto Scaling
+
+// #Types of AWS Load Balancers
+// AWS mainly has 4 types:
+// | Load Balancer | Layer     | Best for                       |
+// | ------------- | --------- | ------------------------------ |
+// | ALB       | Layer 7   | HTTP/HTTPS web applications    |
+// | NLB       | Layer 4   | TCP/UDP, very high performance |
+// | GWLB      | Layer 3   | Network/security appliances    |
+// | CLB       | Layer 4/7 | Older/legacy applications      |
+// The two you'll encounter most often as a Node.js/MERN developer are ALB and NLB.
+
+// ## 1. Application Load Balancer (ALB)
+// ALB works at the application/HTTP level.
+// Example:
+// User
+//   |
+//   ↓
+// ALB
+//   |
+//   ├── /api/users  → EC2 #1
+//   |
+//   ├── /api/orders → EC2 #2
+//   |
+//   └── /products   → EC2 #3
+
+// ALB can understand things like:
+// URL path
+// HTTP method
+// Host/domain
+// HTTP headers
+// Query parameters
+
+// ### Example
+// You have:
+// api.example.com/users
+// api.example.com/orders
+
+// You can configure:
+// /users  → User Service
+// /orders → Order Service
+
+// This is called path-based routing.
+// You can also do:
+// api.example.com → Backend
+// www.example.com → Frontend
+
+// This is host-based routing.
+// ALB is commonly used for:
+// React + Node.js applications
+// REST APIs
+// Microservices
+// HTTP/HTTPS applications
+// WebSocket applications
+
+// For your MERN/Node.js applications, ALB is usually the first Load Balancer you should think about.
+
+// # 2.Network Load Balancer (NLB)
+// NLB works at the network/transport level, mainly:
+// TCP
+// UDP
+// TLS
+// It doesn't inspect HTTP requests in the same way an ALB does.
+
+// Example:
+// Users
+//   |
+//   ↓
+//  NLB
+//   |
+//   ├── EC2 #1
+//   ├── EC2 #2
+//   └── EC2 #3
+// NLB is designed for:
+// Very high traffic
+// Very low latency
+// TCP applications
+// UDP applications
+// Static IP requirements
+// Non-HTTP applications
+
+// ### Simple difference
+// ALB:
+// "User requested /orders"
+// → I understand HTTP
+// → Send it to Order Service
+
+// NLB:
+// "TCP connection arrived on port 5000"
+// → Forward the connection
+
+// # 3. Gateway Load Balancer (GWLB)
+// GWLB is mainly for network security appliances.
+// For example:
+// Internet
+//    |
+//    ↓
+//  GWLB
+//    |
+//    ↓
+// Firewall / Security Appliance
+//    |
+//    ↓
+// Application
+
+// Used for things like:
+// Firewalls
+// Intrusion detection systems
+// Deep packet inspection
+// Network security appliances
+// You generally won't use GWLB for a normal MERN application.
+
+// # 4. Classic Load Balancer (CLB)
+// This is the old/legacy AWS Load Balancer.
+// It supports:
+// HTTP
+// HTTPS
+// TCP
+// SSL
+
+// But AWS recommends using ALB or NLB for modern applications.
+// So for interviews:
+// > CLB is the older generation; ALB and NLB are preferred for new applications.
+
+// # ALB vs NLB — Important Interview Question
+// Think about it like this:
+// #ALB
+// HTTP request
+//      ↓
+//     ALB
+//      ↓
+// "What URL did the user request?"
+//      ↓
+// /users → Server A
+// /orders → Server B
+
+// ### NLB
+// TCP/UDP connection
+//        ↓
+//       NLB
+//        ↓
+// Server A / Server B
+
+// | Feature               | ALB                                                       | NLB       |
+// | --------------------- | --------------------------------------------------------- | --------- |
+// | OSI layer             | Layer 7                                                   | Layer 4   |
+// | HTTP/HTTPS            | ✅                                                        | ✅         |
+// | TCP                   | Through TLS/TCP listeners, but not HTTP-routing semantics | ✅         |
+// | UDP                   | ❌                                                        | ✅         |
+// | Path-based routing    | ✅                                                        | ❌         |
+// | Host-based routing    | ✅                                                        | ❌         |
+// | Very high performance | Good                                                      | Excellent |
+// | Static IP             | Generally no fixed per-node IP                            | ✅         |
+// | Web applications      | ⭐⭐⭐⭐⭐                                              | ⭐⭐⭐       |
+// | Microservices         | ⭐⭐⭐⭐⭐                                              | ⭐⭐⭐       |
+// | Non-HTTP applications | ❌                                                        | ✅         |
+
+// ## Where does Nginx fit?
+// This is particularly important for what you've been doing with your EC2.
+// You might have:
+// Internet
+//     |
+//     ↓
+// AWS ALB
+//     |
+//     ↓
+// EC2
+//     |
+//     ↓
+// Nginx
+//     |
+//     ↓
+// Node.js :5000
+
+// Nginx itself can also act as a reverse proxy/load balancer:
+//               Nginx
+//              /     \
+//             ↓       ↓
+//         Node #1   Node #2
+
+// So there are actually two different concepts:
+// AWS Load Balancer → AWS-managed service
+// Nginx → software you install/manage on your server.
+
+// #Interview one-liner
+// >A Load Balancer distributes incoming traffic across multiple backend servers to improve availability, scalability, and reliability. 
+// In AWS, ALB is generally used for HTTP/HTTPS application traffic, NLB for high-performance TCP/UDP traffic, and GWLB for network security appliances.
