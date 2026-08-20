@@ -43,7 +43,7 @@
 // Congratulations! You have successfully set up an EC2 instance and installed nginx on it. You can now use nginx to serve your web applications or static content as needed.
 
 
-// /////////////////////////////////////////////////////////////////////////////////////////
+//
 // //##2 Install nginx on EC2 Instance
 // 1. Connect to the EC2 instance using SSH.
 // 2. Update the package manager and install nginx:
@@ -107,3 +107,118 @@
 // 4. Test the Listener:
 // - Once the listener is set up and your target group is registered, you can test the listener by navigating to the load balancer's DNS name in a web browser. You should see the nginx welcome page from one of your EC2 instances, indicating that the listener is successfully forwarding traffic to your target group.
 // Congratulations! You have successfully set up target groups and listeners to manage traffic distribution to your EC2 instances running nginx. This setup will help improve the performance and reliability of your application.
+
+
+/////////////////////
+// In this I create instance for load blancer and associate it with Elastic Ip and setup for nginx
+// This error means your .pem file has Windows permissions that are too open. SSH refuses to use a private key if other users can access it.
+// You need to remove other users' permissions from Alam.pem.
+// Method 1 (Recommended) – Windows Security Properties
+// Go to C:\Users\nk\Downloads.
+// Right-click Alam.pem → Properties.
+// Open the Security tab.
+// Click Advanced.
+// Click Disable inheritance.
+// Choose Remove all inherited permissions.
+// Click Add → Select a principal.
+// Type your Windows username (nk) → Check Names → OK.
+// Give Full control.
+// Remove any entries like:
+// CodexSandboxUsers
+// Users
+// Authenticated Users
+// Everyone
+
+// Click Apply → OK.
+
+// The file should now only be accessible by your account.
+
+// Method 2 – PowerShell (Faster)
+// Open PowerShell as Administrator and run:
+// icacls "C:\Users\nk\Downloads\Alam.pem" /inheritance:r
+// icacls "C:\Users\nk\Downloads\Alam.pem" /remove "Users"
+// icacls "C:\Users\nk\Downloads\Alam.pem" /remove "Authenticated Users"
+// icacls "C:\Users\nk\Downloads\Alam.pem" /remove "Everyone"
+// icacls "C:\Users\nk\Downloads\Alam.pem" /grant:r "$env:USERNAME:F"
+// If CodexSandboxUsers still appears, remove it explicitly:
+
+// icacls "C:\Users\nk\Downloads\Alam.pem" /remove "CodexSandboxUsers"
+// Verify Permissions
+
+// Run:
+// icacls "C:\Users\nk\Downloads\Alam.pem"
+// You should see only something like:
+// Alam.pem NT AUTHORITY\SYSTEM:(F)
+        //  DESKTOP-EN3U4KL\nk:(F)
+// Connect Again
+// cd C:\Users\nk\Downloads
+// ssh -i Alam.pem ubuntu@184.192.100.160
+// If CodexSandboxUsers won't remove
+// Run this command and paste the output:
+// icacls "C:\Users\nk\Downloads\Alam.pem"
+
+//
+// It run successfully and look like below
+// C:\Users\nk\Downloads>ssh -i "Alam.pem" ubuntu@184.192.100.160
+// Welcome to Ubuntu 24.04.4 LTS (GNU/Linux 6.17.0-1017-aws x86_64)
+
+//  * Documentation:  https://help.ubuntu.com
+//  * Management:     https://landscape.canonical.com
+//  * Support:        https://ubuntu.com/pro
+
+//  System information as of Wed Aug 19 19:07:52 UTC 2026
+
+//   System load:  0.08              Temperature:           -273.1 C
+//   Usage of /:   27.6% of 6.71GB   Processes:             110
+//   Memory usage: 26%               Users logged in:       0
+//   Swap usage:   0%                IPv4 address for ens5: 172.31.6.244
+
+
+// Expanded Security Maintenance for Applications is not enabled.
+
+// 0 updates can be applied immediately.
+
+// Enable ESM Apps to receive additional future security updates.
+// See https://ubuntu.com/esm or run: sudo pro status
+
+
+// The list of available updates is more than a week old.
+// To check for new updates run: sudo apt update
+
+// Last login: Wed Aug 19 17:22:42 2026 from 103.5.134.46
+// To run a command as administrator (user "root"), use "sudo <command>".
+// See "man sudo_root" for details.
+
+// ubuntu@ip-172-31-6-244:~$
+
+//
+// Now install nginx again
+//(1)sudo apt update
+//(2) sudo apt install nginx
+//(2) sudo apt install nginx -y
+//(3)sudo systemctl restart nginx
+//(3)ubuntu@ip-172-31-6-244:~$ sudo systemctl restart nginx
+//(4)ubuntu@ip-172-31-6-244:~$ curl http://localhost:80
+// <!DOCTYPE html>
+// <html>
+// <head>
+// <title>Welcome to nginx!</title>
+// <style>
+// html { color-scheme: light dark; }
+// body { width: 35em; margin: 0 auto;
+// font-family: Tahoma, Verdana, Arial, sans-serif; }
+// </style>
+// </head>
+// <body>
+// <h1>Welcome to nginx!</h1>
+// <p>If you see this page, the nginx web server is successfully installed and
+// working. Further configuration is required.</p>
+
+// <p>For online documentation and support please refer to
+// <a href="http://nginx.org/">nginx.org</a>.<br/>
+// Commercial support is available at
+// <a href="http://nginx.com/">nginx.com</a>.</p>
+
+// <p><em>Thank you for using nginx.</em></p>
+// </body>
+// </html>

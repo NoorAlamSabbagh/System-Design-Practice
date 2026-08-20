@@ -509,3 +509,87 @@
 // #Interview one-liner
 // >A Load Balancer distributes incoming traffic across multiple backend servers to improve availability, scalability, and reliability. 
 // In AWS, ALB is generally used for HTTP/HTTPS application traffic, NLB for high-performance TCP/UDP traffic, and GWLB for network security appliances.
+
+
+//Here I create Instance associate Load balancer and Elastic IP and after setup instance and nginx now create target group
+
+// ### What is an AWS Target Group?
+// In simple terms, an AWS Target Group is a list of servers/resources that a Load Balancer sends requests to.
+// Think of it like a traffic manager.
+//                 Users
+//                   ↓
+//             Load Balancer
+//                   ↓
+//              Target Group
+//           ┌───────┼───────┐
+//           ↓       ↓       ↓
+//         EC2-1   EC2-2   EC2-3
+//           ↓       ↓       ↓
+//         Nginx   Nginx   Nginx
+
+// ### Why do we use it?
+// Suppose you have 3 EC2 servers running your application:
+// EC2-1 → Application
+// EC2-2 → Application
+// EC2-3 → Application
+
+// Instead of the Load Balancer manually knowing about all three servers, you put them into a Target Group.
+// The Load Balancer then sends requests to the targets in that group.
+// ### 1. Load balancing
+// If 100 users access your website:
+
+//              Load Balancer
+//                   ↓
+//        ┌──────────┼──────────┐
+//        ↓          ↓          ↓
+//      EC2-1      EC2-2      EC2-3
+//       33          34          33
+// Traffic can be distributed across your EC2 instances.
+// ### 2. Health checks
+// This is one of the most important purposes.
+// The Target Group checks whether your server is working.
+// For example:
+// EC2-1 → Healthy ✅
+// EC2-2 → Healthy ✅
+// EC2-3 → Unhealthy ❌
+// The Load Balancer can stop sending traffic to EC2-3.
+// For example, your health check might call:
+// GET /
+// on:
+// EC2:80
+// If Nginx responds successfully:
+// 200 OK
+// the target is considered Healthy.
+// ### 3. Easy scaling
+// Later, suppose you need more servers:
+// Before:
+// Target Group
+//  ├── EC2-1
+//  └── EC2-2
+// You launch another EC2:
+// After:
+// Target Group
+//  ├── EC2-1
+//  ├── EC2-2
+//  └── EC2-3
+// The Load Balancer can start sending traffic to EC2-3 after it passes its health check.
+// ### In your current setup
+
+// You probably have something like:
+// Chrome
+//    ↓
+// AWS Load Balancer
+//    ↓
+// Target Group
+//    ↓
+// EC2 Instance
+//    ↓
+// Nginx :80
+//    ↓
+// Your application
+// So remember:
+// >Load Balancer = decides where traffic goes
+// >Target Group = tells the Load Balancer which servers it can send traffic to
+// >Health Check = tells whether those servers are working
+// A Target Group doesn't itself receive traffic from users. The Load Balancer uses the Target Group to know 
+// where to forward the traffic.
