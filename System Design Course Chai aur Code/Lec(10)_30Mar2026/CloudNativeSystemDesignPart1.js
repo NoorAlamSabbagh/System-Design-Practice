@@ -593,3 +593,5 @@
 // >Health Check = tells whether those servers are working
 // A Target Group doesn't itself receive traffic from users. The Load Balancer uses the Target Group to know 
 // where to forward the traffic.
+
+// VDI Vs Azure and  Windows setup
