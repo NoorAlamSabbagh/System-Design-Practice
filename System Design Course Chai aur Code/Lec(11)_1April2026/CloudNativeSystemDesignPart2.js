@@ -137,3 +137,353 @@
 // A mutex can be useful for coordinating those operations.
 // If by "mutex in DB" you mean how to prevent two API requests from updating the same MongoDB document simultaneously, 
 // that's slightly different — you'd typically use atomic MongoDB operations or transactions, rather than a normal application mutex.
+
+//
+// Transcoding pipeline and video Transcoding pipeline
+// ### What is a Video Transcoding Pipeline?
+// A video transcoding pipeline is a series of steps that takes a video in one format and converts
+// it into multiple formats, resolutions, bitrates, or codecs so it can be played efficiently on different devices and network speeds.
+
+// Think of YouTube/Netflix:
+// Original Video
+//      ↓
+//  Upload
+//      ↓
+//  Transcoding
+//      ↓
+//  ┌──────────────┬──────────────┬──────────────┐
+//  ↓              ↓              ↓
+// 1080p          720p           480p
+// 5 Mbps         2.5 Mbps       1 Mbps
+//  ↓              ↓              ↓
+//  Storage       Storage        Storage
+//      ↓
+//  CDN
+//      ↓
+//  User
+
+// ### Why do we need transcoding?
+// Suppose someone uploads:
+// video.mp4
+// 4K
+// 50 Mbps
+// H.265
+// Not every user's device/network can efficiently play that.
+
+// So the system creates:
+// 1080p → 5 Mbps
+// 720p  → 2.5 Mbps
+// 480p  → 1 Mbps
+// 360p  → 500 Kbps
+
+// Now the player can choose the appropriate quality.
+// ## Typical Video Transcoding Pipeline
+
+// ### 1. Upload
+
+// User uploads:
+// movie.mp4
+
+// Usually it goes to object storage such as S3.
+// Client
+//   ↓
+// Backend
+//   ↓
+// S3
+
+// ### 2. Create a Job
+
+// The backend creates a transcoding job:
+// {
+//   videoId: "123",
+//   input: "s3://videos/original.mp4",
+//   status: "PENDING"
+// }
+
+// ### 3. Queue
+// Instead of making the API wait for the entire conversion:
+// API → Queue → Worker
+// Examples of queues:
+// * Redis/BullMQ
+// * RabbitMQ
+// * Kafka
+// * AWS SQS
+// This is important because transcoding can take minutes,
+// depending on the video.
+
+// ### 4. Worker Transcodes
+// A worker picks up the job:
+// Worker
+//   ↓
+// FFmpeg
+//   ↓
+// 1080p
+// 720p
+// 480p
+// 360p
+// FFmpeg is commonly used for video processing.
+// ### 5. Generate Streaming Format
+// For adaptive streaming, the system may create:
+// master.m3u8
+//    ↓
+// 1080p/index.m3u8
+// 720p/index.m3u8
+// 480p/index.m3u8
+
+// and video segments:
+// segment001.ts
+// segment002.ts
+// segment003.ts
+// ...
+// Modern systems may also use CMAF/fMP4 segments.
+// ### 6. Store Output
+// S3
+// ├── original/
+// ├── 1080p/
+// ├── 720p/
+// ├── 480p/
+// └── master.m3u8
+// ### 7. CDN
+// Finally:
+// User
+//  ↓
+// Cloudflare / CloudFront
+//  ↓
+// S3
+// The CDN delivers the video segments close to the user.
+// ## Complete Architecture
+// For a scalable MERN-based video application:
+//                  ┌──────────────┐
+//                  │    React     │
+//                  └──────┬───────┘
+//                         │
+//                         ↓
+//                 ┌───────────────┐
+//                 │ Node.js API   │
+//                 └───────┬───────┘
+//                         │
+//               Upload / Create Job
+//                         │
+//                         ↓
+//                 ┌───────────────┐
+//                 │ Object Storage│
+//                 │     S3        │
+//                 └───────┬───────┘
+//                         │
+//                         ↓
+//                   ┌──────────┐
+//                   │  Queue   │
+//                   │ SQS/Redis│
+//                   └────┬─────┘
+//                        │
+//                        ↓
+//                 ┌──────────────┐
+//                 │Transcoding   │
+//                 │Worker        │
+//                 │   FFmpeg     │
+//                 └──────┬───────┘
+//                        │
+//              ┌─────────┼─────────┐
+//              ↓         ↓         ↓
+//            1080p      720p      480p
+//              │         │         │
+//              └─────────┼─────────┘
+//                        ↓
+//                   S3 / Storage
+//                        ↓
+//                      CDN
+//                        ↓
+//                      User
+// ### The important concept
+// Transcoding is CPU/GPU-intensive and asynchronous.
+// So you generally shouldn't do this:
+// User → API → FFmpeg → wait 5 minutes → response
+// Instead:
+// User → API → Queue → immediate response
+//                   ↓
+//                Worker
+//                   ↓
+//                FFmpeg
+//                   ↓
+//                Storage
+//                   ↓
+//                  CDN
+// This architecture is very important for system design interviews, especially when designing 
+// YouTube, Netflix, video-upload, or video-processing systems.
+
+//
+// ## AWS EventBridge
+// Amazon Web Services EventBridge is a serverless event bus service used to connect AWS services, applications, and external systems through events.
+// The simple idea:
+// >Something happens → an event is generated → EventBridge matches it → sends it to the appropriate target.
+// ### Simple example
+// Suppose a user uploads a video:
+// User uploads video
+//        ↓
+//       S3
+//        ↓
+//    EventBridge
+//        ↓
+//    Rule matches
+//        ↓
+//    SQS Queue
+//        ↓
+// Transcoding Worker
+//        ↓
+//     FFmpeg
+// So your API doesn't need to directly call the transcoding service.
+// ## Main components
+// ### 1. Event
+// An event describes something that happened.
+// Example:
+// {
+//   "source": "my.video.app",
+//   "detail-type": "VideoUploaded",
+//   "detail": {
+//     "videoId": "123",
+//     "file": "video.mp4"
+//   }
+// }
+
+// ### 2. Event Bus
+// The event bus receives events.
+// Producer
+//    ↓
+// Event Bus
+//    ↓
+// Rules
+
+// There are different types, including:
+// AWS default event bus — AWS services send events here.
+// Custom event bus — events from your own applications.
+// Partner event bus — events from supported SaaS partners.
+
+// ### 3. Rule
+// A rule decides:
+// > "Which events am I interested in?"
+
+// For example:
+// IF
+// source = "my.video.app"
+// AND
+// detail-type = "VideoUploaded"
+
+// THEN
+// send event to SQS
+
+// ### 4. Target
+// The target is where EventBridge sends the matching event.
+
+// Common targets include:
+// EventBridge
+//     ↓
+//  ┌───────────────┐
+//  │ Targets       │
+//  ├───────────────┤
+//  │ Lambda        │
+//  │ SQS           │
+//  │ SNS           │
+//  │ Step Functions│
+//  │ ECS           │
+//  │ API Gateway   │
+//  └───────────────┘
+
+// # EventBridge vs SQS
+// This is important for interviews.
+// EventBridge = event routing
+// SQS = message queue
+// Example:
+//                  EventBridge
+//                       ↓
+//               ┌───────┴───────┐
+//               ↓               ↓
+//           Lambda             SQS
+//                               ↓
+//                            Worker
+
+// EventBridge can decide where the event should go.
+// SQS is primarily used to **hold messages until consumers process them.
+
+// ### Easy way to remember
+// >EventBridge = "Who should receive this event?"
+// >SQS = "Hold this message until a worker processes it."
+// ## EventBridge vs SNS
+// Another common interview question:
+
+// | EventBridge                        | SNS                      |
+// | ---------------------------------- | ------------------------ |
+// | Event routing                      | Pub/sub messaging        |
+// | Powerful event filtering           | Topic/subscriber model   |
+// | Integrates heavily with AWS events | Simple fan-out messaging |
+// | Event buses + rules                | Topics + subscriptions   |
+
+// For example:
+// S3
+//  ↓
+// EventBridge
+//  ↓
+// Rule
+//  ├── Lambda
+//  ├── SQS
+//  └── Step Functions
+
+// ## Why use EventBridge?
+// You use it when you want loosely coupled architecture.
+
+// Without EventBridge:
+// Order Service
+//    ↓
+// directly calls
+//    ↓
+// Email Service
+//    ↓
+// directly calls
+//    ↓
+// Analytics Service
+
+// This creates tight coupling.
+// With EventBridge:
+//              EventBridge
+//             /     |      \
+//            ↓      ↓       ↓
+//         Email  Analytics  Inventory
+
+// The Order Service only says:
+// "OrderCreated"
+// It doesn't need to know who consumes that event.
+// ### Interview answer
+
+// >AWS EventBridge is a serverless event bus used to build event-driven architectures. 
+// It receives events from AWS services or applications, applies rules to filter and route those events, and sends them to targets 
+// such as Lambda, SQS, SNS, Step Functions, or ECS.
+// For your video-transcoding pipeline, a particularly good architecture is S3 → EventBridge → SQS → transcoding worker, 
+// because it keeps the upload API decoupled from the long-running transcoding process.
+
+
+//
+// ### AWS Elastic Transcoder — Simple Explanation
+// Amazon Elastic Transcoder was an AWS service used to convert videos from one format/quality to another.
+// For example:
+// Original Video
+//    ↓
+// Elastic Transcoder
+//    ↓
+//  ┌───────┬───────┬───────┐
+//  ↓       ↓       ↓
+// 1080p   720p    480p
+// ### Why?
+// Suppose a user uploads:
+// video.mov
+// 4K
+// You want to create versions that work well on different devices:
+// 4K → 1080p
+//    → 720p
+//    → 480p
+// This process is called video transcoding.
+// ### Important ⚠️
+// Amazon Elastic Transcoder is a legacy service. For new AWS video-transcoding applications, 
+// AWS generally recommends AWS Elemental MediaConvert instead.
+
+// So remember:
+// >Elastic Transcoder = older AWS video conversion service.
+// >MediaConvert = modern AWS service for video transcoding.
