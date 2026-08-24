@@ -561,3 +561,6 @@
 // specific TXT record under `_acme-challenge`. The CA checks that DNS record to verify domain ownership and then issues the certificate.
 // Remember:
 // DNS challenge = prove domain ownership by adding a TXT record.
+
+//
+//https://operational-transformation.github.io/
