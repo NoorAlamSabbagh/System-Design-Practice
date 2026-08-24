@@ -487,3 +487,77 @@
 // So remember:
 // >Elastic Transcoder = older AWS video conversion service.
 // >MediaConvert = modern AWS service for video transcoding.
+
+
+//2023 Teachyst
+//How to enable users to add custom domains
+
+// Route53 from AWS DNS Service (DNS)
+//Own DNS Denamed-->nodejs
+
+// ssl certificate dns challenge
+// ### SSL Certificate + DNS Challenge — Simple Explanation
+// When you want an SSL/TLS certificate for a domain like:
+// example.com
+// the Certificate Authority (CA), such as Let's Encrypt, needs to verify:
+// >"Do you actually control example.com?"
+// A DNS challenge is one way to prove that.
+// ### How it works
+// Suppose you request a certificate for:
+// example.com
+// The CA gives you a special value:
+// abc123xyz...
+// You create a TXT DNS record:
+// _acme-challenge.example.com
+
+// TXT
+// abc123xyz...
+// Then:
+//                 Certificate Authority
+//                         │
+//                         │ "Prove you own example.com"
+//                         ↓
+//                     DNS lookup
+//                         │
+//                         ↓
+//               _acme-challenge.example.com
+//                         │
+//                         ↓
+//                  TXT = abc123xyz
+//                         │
+//                         ↓
+//                   ✅ Verification
+//                         │
+//                         ↓
+//                 SSL Certificate
+
+// ### Why TXT record?
+// Because the CA can query the public DNS system and check whether the expected secret value exists.
+// If you can create the correct DNS record, it strongly demonstrates that you control the domain's DNS.
+// ### DNS Challenge vs HTTP Challenge
+// There are two common ACME validation methods:
+// HTTP-01:
+// CA
+//  ↓
+// http://example.com/.well-known/acme-challenge/...
+//  ↓
+// Your web server
+
+// DNS-01:
+// CA
+//  ↓
+// DNS
+//  ↓
+// TXT _acme-challenge.example.com
+
+// ### When is DNS challenge useful?
+// DNS-01 is especially useful when:
+// Your server isn't publicly accessible over HTTP.
+// You need a wildcard certificate, such as:
+// .example.com
+// You want certificate validation independent of your web server.
+// ### Simple interview answer
+// >A DNS challenge is an SSL certificate validation method where the Certificate Authority asks the domain owner to create a
+// specific TXT record under `_acme-challenge`. The CA checks that DNS record to verify domain ownership and then issues the certificate.
+// Remember:
+// DNS challenge = prove domain ownership by adding a TXT record.
