@@ -706,7 +706,6 @@ The DBMS needs to understand it.
 That's the query processor.
 Think:
 
-```text
 SQL
  ↓
 Parser
