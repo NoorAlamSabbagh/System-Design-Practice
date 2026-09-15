@@ -50,7 +50,100 @@
 // ### Pub/Sub Layer
 // * Redis Pub/Sub
 // * Kafka
-// * RabbitMQ
+// * RabbitMQ\
+
+// # Sticky Sessions
+// > Once a user's request goes to Server A, the load balancer keeps sending that user's future requests to Server A.
+// Example:
+// User
+//   ↓
+// Load Balancer
+//   ↓
+// Server A  ← User stays here
+// Without sticky sessions:
+// Request 1 → Server A
+// Request 2 → Server B
+// Request 3 → Server C
+
+// With sticky sessions:
+// Request 1 → Server A
+// Request 2 → Server A
+// Request 3 → Server A
+
+// Usually this is done using a cookie/session ID.
+// ### Problem with sticky sessions
+// If Server A crashes:
+// User → Server A ❌
+// The user's session may be lost if the session exists only in Server A's memory.
+// Also, traffic can become uneven:
+// Server A → 1,000 users
+// Server B → 100 users
+// Server C → 100 users
+
+// ### Better approach
+// For scalable systems, keep sessions outside individual servers:
+//              ┌→ Server A
+// User → LB ───┼→ Server B
+//              └→ Server C
+//                   ↓
+//                Redis
+//             (Session Store)
+// Then any server can handle the request.
+
+// ## 2. Scaling Strategies
+// There are two basic ways.
+// ### Vertical Scaling
+// Make one server more powerful.
+// 2 CPU / 4 GB RAM
+//        ↓
+// 8 CPU / 32 GB RAM
+// Simple, but there is a hardware limit and potentially a single point of failure.
+
+// ### Horizontal Scaling
+// Add more servers.
+//              ┌→ Server A
+// Users → LB ──┼→ Server B
+//              ├→ Server C
+//              └→ Server D
+// This is generally preferred for highly scalable systems.
+
+// ## 3. Auto Scaling
+// Instead of manually adding servers, automatically increase/decrease instances based on load.
+// Example:
+// Normal traffic
+//      ↓
+// 3 servers
+
+// Traffic increases
+//      ↓
+// CPU > 70%
+//      ↓
+// Add servers
+//      ↓
+// 5 servers
+// When traffic decreases:
+// CPU < 30%
+//      ↓
+// Remove servers
+//      ↓
+// 3 servers
+
+// Common scaling metrics:
+// * CPU utilization
+// * Memory utilization
+// * Request count
+// * Requests per second
+// * Queue length
+// * Response latency
+
+// ### Interview answer
+// If asked:
+// > “Would you use sticky sessions?”
+// You can say:
+// > “I would avoid sticky sessions when possible. I prefer stateless application servers with sessions stored in a shared store like Redis. 
+//   This allows the load balancer to distribute requests freely and makes horizontal scaling and failover easier.
+// For your system-design preparation, sticky sessions + stateless servers + Redis + horizontal auto-scaling is an important combination to understand.
+
 
 // ### Sticky Sessions (Optional)
 // * Keeps user on same server
@@ -109,7 +202,7 @@
 // ## 🚀 Advanced Concepts (For Senior-Level Prep)
 // * Backpressure handling: When the server is overwhelmed, it can signal clients to slow down sending messages.
 // * Connection draining during deployments: When updating servers, gracefully close existing connections 
-// while allowing new connections to be established on updated servers.
+//   while allowing new connections to be established on updated servers.
 // * Load shedding: When the server is overloaded, it can reject new connections or drop messages to maintain stability.
 // * Graceful shutdown: When shutting down a server, it should finish processing existing connections before closing them,
 // * WebSocket clustering: Multiple WebSocket servers can be clustered together to share the load and provide high availability.
@@ -119,13 +212,13 @@
 
 // ## 🧩 Quick Revision Summary
 // * Persistent TCP connection: Maintained throughout the lifecycle of the application. TCP means Transmission Control Protocol,
-//  which ensures reliable data transmission between client and server.
+//   which ensures reliable data transmission between client and server.
 // * Full-duplex communication : Both client and server can send messages simultaneously without waiting for a response.
 // * Real-time data flow : Enables instant updates and notifications, making it suitable for applications that require immediate feedback.
 // * Stateful architecture: The server maintains the state of each connection, which can lead to challenges in scaling and 
-// resource management.
+//   resource management.
 // * Needs Redis/Kafka for scaling: To handle multiple WebSocket servers and ensure that messages are delivered to the correct clients, 
-// a Pub/Sub system like Redis or Kafka is often used.
+//   a Pub/Sub system like Redis or Kafka is often used.
 // Kafka is a distributed streaming platform that allows for high-throughput, fault-tolerant messaging between producers and consumers.
 // * Use WSS + JWT 
 // * Avoid for simple CRUD APIs
