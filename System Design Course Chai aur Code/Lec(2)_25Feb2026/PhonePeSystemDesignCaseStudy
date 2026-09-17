@@ -1,0 +1,657 @@
+# 26. PhonePe System Design Case Study
+
+## 1. Problem statement
+
+Design a simplified version of PhonePe that allows users to:
+
+1. Register and log in.
+2. Link their bank account.
+3. Send money using UPI ID or QR code.
+4. Receive money.
+5. Check transaction history.
+6. Receive payment status and notifications.
+7. Handle failed, pending, and duplicate payments.
+
+Important: This is an interview-oriented architecture, not PhonePe’s confidential internal architecture. PhonePe officially operates as a UPI Third-Party Application Provider (TPAP) through sponsor PSP banks and connects to the NPCI UPI ecosystem. ([PhonePe][1])
+
+---
+
+# 2. High-level architecture
+
+```text
+                  ┌─────────────────────┐
+                  │   Mobile App/Web    │
+                  │      PhonePe        │
+                  └──────────┬──────────┘
+                             │ HTTPS
+                             ▼
+                  ┌─────────────────────┐
+                  │   API Gateway       │
+                  │ Auth, Rate Limit    │
+                  └──────────┬──────────┘
+                             │
+          ┌──────────────────┼──────────────────┐
+          ▼                  ▼                  ▼
+ ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
+ │ User Service   │ │ Payment Service│ │ History Service│
+ └────────────────┘ └───────┬────────┘ └───────┬────────┘
+                             │                  │
+                             ▼                  ▼
+                    ┌────────────────┐  ┌────────────────┐
+                    │ Payment Queue  │  │ Transaction DB │
+                    └───────┬────────┘  └────────────────┘
+                            │
+                            ▼
+                  ┌─────────────────────┐
+                  │ UPI Connector       │
+                  │ PSP Bank Integration│
+                  └──────────┬──────────┘
+                             │
+                             ▼
+                    ┌────────────────┐
+                    │   NPCI UPI     │
+                    │    Network     │
+                    └───────┬────────┘
+                            │
+                 ┌──────────┴──────────┐
+                 ▼                     ▼
+          ┌─────────────┐      ┌─────────────┐
+          │ Payer Bank  │      │ Payee Bank  │
+          │ Debit       │      │ Credit      │
+          └─────────────┘      └─────────────┘
+```
+
+This diagram represents a simplified conceptual design. PhonePe has publicly discussed using a shared-nothing architecture, isolated databases for services, and database sharding to support large transaction volumes. ([PhonePe][2])
+
+---
+
+# 3. Main components
+
+| Component            | Responsibility                             |
+| -------------------- | ------------------------------------------ |
+| Mobile App           | User interface and payment initiation      |
+| API Gateway          | Authentication, routing, rate limiting     |
+| User Service         | User profile, linked accounts, UPI ID      |
+| Payment Service      | Creates and manages payments               |
+| UPI Connector        | Communicates with PSP bank and UPI network |
+| Transaction Database | Stores payment records                     |
+| Redis                | Fast lookup, temporary status, idempotency |
+| Message Queue        | Handles asynchronous tasks                 |
+| Notification Service | Sends SMS, push notifications, email       |
+| Fraud Detection      | Detects suspicious transactions            |
+| Monitoring           | Logs, metrics, alerts, tracing             |
+
+---
+
+# 4. How a payment works
+
+Example:
+
+> Noor sends ₹500 to a shopkeeper using a QR code.
+
+## Step-by-step flow
+
+```text
+1. User scans QR code
+          │
+          ▼
+2. App extracts receiver's UPI ID
+          │
+          ▼
+3. App sends payment request
+          │
+          ▼
+4. API Gateway authenticates user
+          │
+          ▼
+5. Payment Service validates request
+          │
+          ▼
+6. Create payment record: PENDING
+          │
+          ▼
+7. Request goes to UPI Connector
+          │
+          ▼
+8. PSP Bank → NPCI UPI Network
+          │
+          ▼
+9. NPCI routes request to both banks
+          │
+          ▼
+10. Payer Bank debits ₹500
+          │
+          ▼
+11. Payee Bank credits ₹500
+          │
+          ▼
+12. Payment response received
+          │
+          ▼
+13. Update transaction: SUCCESS
+          │
+          ▼
+14. Notify sender and receiver
+```
+
+The actual UPI transaction involves external banking and NPCI systems. PhonePe’s application is one participant in this ecosystem rather than the complete banking settlement system. ([PhonePe][1])
+
+---
+
+# 5. Payment status management
+
+A payment should not be stored only as `SUCCESS` or `FAILED`.
+
+Use the following states:
+
+```text
+CREATED
+   │
+   ▼
+PENDING
+   │
+   ├──────────────► SUCCESS
+   │
+   ├──────────────► FAILED
+   │
+   └──────────────► UNKNOWN
+                         │
+                         ▼
+                   STATUS CHECK
+                         │
+                  ┌──────┴──────┐
+                  ▼             ▼
+               SUCCESS        FAILED
+```
+
+### Why is `UNKNOWN` important?
+
+Suppose:
+
+1. User sends ₹500.
+2. Bank debits the user's account.
+3. PhonePe's server loses network connection.
+4. PhonePe does not receive the response.
+
+The system cannot immediately mark the transaction as failed because the money might already have been transferred.
+
+Therefore, the payment remains `PENDING` or `UNKNOWN`, and the system checks the final status with the payment provider.
+
+---
+
+# 6. Database design
+
+## Users table
+
+```text
+users
+-----
+id
+name
+mobile_number
+email
+created_at
+```
+
+## Payment accounts table
+
+```text
+payment_accounts
+----------------
+id
+user_id
+upi_id
+bank_reference
+status
+created_at
+```
+
+Do not store sensitive bank credentials or UPI PINs in plain text.
+
+## Transactions table
+
+```text
+transactions
+------------
+id
+idempotency_key
+sender_user_id
+receiver_upi_id
+amount
+currency
+status
+provider_reference
+failure_reason
+created_at
+updated_at
+```
+
+Example record:
+
+```json
+{
+  "id": "TXN1001",
+  "idempotencyKey": "REQ-12345",
+  "senderUserId": "USER101",
+  "receiverUpiId": "shop@upi",
+  "amount": 500,
+  "status": "SUCCESS",
+  "providerReference": "NPCI98765"
+}
+```
+
+---
+
+# 7. Preventing duplicate payments
+
+## Problem
+
+The user clicks the Pay button twice, or the mobile app retries the same request because of poor network connectivity.
+
+Without protection:
+
+```text
+Request 1 → Debit ₹500
+Request 2 → Debit ₹500
+```
+
+The user could lose ₹1,000 instead of ₹500.
+
+## Solution: Idempotency key
+
+The client sends a unique key with every payment request.
+
+```http
+POST /api/payments
+Idempotency-Key: REQ-12345
+```
+
+The backend checks whether the key already exists.
+
+```text
+If key does not exist:
+    Create payment and process it
+
+If key already exists:
+    Return the previous payment result
+```
+
+Database constraint:
+
+```text
+UNIQUE(idempotency_key)
+```
+
+Interview answer:
+
+> Idempotency ensures that retrying the same payment request does not create multiple financial transactions.
+
+---
+
+# 8. Preventing race conditions
+
+Example:
+
+```text
+User balance = ₹1,000
+
+Request A: Withdraw ₹700
+Request B: Withdraw ₹500
+```
+
+Both requests may read the balance as ₹1,000 before either updates it.
+
+Possible incorrect result:
+
+```text
+₹700 + ₹500 = ₹1,200 withdrawn
+Available balance = negative
+```
+
+Possible solutions include:
+
+* Database transactions.
+* Row-level locks.
+* Optimistic concurrency control.
+* Atomic database updates.
+* Distributed locking where appropriate.
+
+For financial systems, a mutex alone is insufficient when multiple backend servers are running. Database-level consistency and the bank’s authoritative transaction status are more important.
+
+---
+
+# 9. Scaling the system
+
+PhonePe must support large numbers of concurrent users and transactions. PhonePe has publicly described using database sharding and a shared-nothing approach to avoid a single database becoming a bottleneck. ([PhonePe][2])
+
+## Scaling architecture
+
+```text
+                 ┌──────────────┐
+                 │ Load Balancer│
+                 └──────┬───────┘
+                        │
+          ┌─────────────┼─────────────┐
+          ▼             ▼             ▼
+     Backend 1     Backend 2     Backend 3
+          │             │             │
+          └─────────────┼─────────────┘
+                        │
+                ┌───────┴────────┐
+                ▼                ▼
+          Payment DB        Redis Cache
+                │
+                ▼
+          Message Queue
+                │
+                ▼
+          Worker Services
+```
+
+### Important scaling techniques
+
+| Technique          | Purpose                                     |
+| ------------------ | ------------------------------------------- |
+| Load Balancer      | Distributes traffic                         |
+| Horizontal Scaling | Adds more backend servers                   |
+| Database Sharding  | Splits data across databases                |
+| Read Replicas      | Handles read-heavy queries                  |
+| Redis              | Reduces database reads                      |
+| Message Queue      | Processes background tasks                  |
+| Auto Scaling       | Adds/removes servers based on load          |
+| Rate Limiting      | Prevents abuse and overload                 |
+| Circuit Breaker    | Prevents repeated calls to failing services |
+
+---
+
+# 10. Database sharding
+
+Suppose we have 500 million users.
+
+Using one database may create a bottleneck. We can distribute users across shards.
+
+```text
+User ID Hash
+     │
+     ▼
+Hash Function
+     │
+ ┌───┼────┬────┐
+ ▼   ▼    ▼    ▼
+DB-1 DB-2 DB-3 DB-4
+```
+
+Example:
+
+```javascript
+shardNumber = hash(userId) % 4;
+```
+
+Possible distribution:
+
+```text
+Hash(USER101) % 4 = 0 → DB-1
+Hash(USER102) % 4 = 2 → DB-3
+Hash(USER103) % 4 = 1 → DB-2
+```
+
+For production systems, consistent hashing or a carefully managed shard-mapping strategy may be used to reduce data movement during resharding.
+
+---
+
+# 11. Why use a message queue?
+
+Some tasks do not need to block the payment response.
+
+For example:
+
+```text
+Payment Successful
+        │
+        ▼
+Publish Payment Event
+        │
+        ├──► Notification Service
+        ├──► Analytics Service
+        ├──► Fraud Monitoring
+        └──► Transaction History
+```
+
+The payment service should not wait for SMS, email, or analytics processing before returning the payment result.
+
+Example event:
+
+```json
+{
+  "event": "PAYMENT_SUCCESS",
+  "transactionId": "TXN1001",
+  "userId": "USER101",
+  "amount": 500
+}
+```
+
+Possible technologies:
+
+* Kafka
+* RabbitMQ
+* AWS SQS
+* AWS SNS
+
+---
+
+# 12. Failure handling
+
+## Case 1: NPCI or bank timeout
+
+```text
+Payment Request
+      │
+      ▼
+Bank Timeout
+      │
+      ▼
+Mark transaction PENDING
+      │
+      ▼
+Retry status inquiry
+      │
+      ▼
+Get final status
+```
+
+Do not blindly retry the entire debit operation. First check whether the original transaction succeeded.
+
+## Case 2: Backend server crashes
+
+The payment record should already be saved before calling the external payment provider.
+
+```text
+Create transaction → PENDING
+              │
+              ▼
+Call payment provider
+              │
+              ▼
+Server crashes
+```
+
+When the system restarts, a reconciliation worker can find pending transactions and check their status.
+
+## Case 3: Duplicate callback
+
+The payment provider might send the same callback more than once.
+
+Solution:
+
+```text
+provider_reference must be UNIQUE
+```
+
+Process the first callback and safely ignore duplicate callbacks.
+
+---
+
+# 13. Reconciliation system
+
+Reconciliation compares the internal payment records with bank/provider records.
+
+```text
+PhonePe Transaction DB
+          │
+          ▼
+   Reconciliation Job
+          │
+          ▼
+Compare with Bank/NPCI Report
+          │
+    ┌─────┴─────┐
+    ▼           ▼
+ Matching    Mismatch
+    │           │
+    ▼           ▼
+ Completed   Investigation
+```
+
+Example:
+
+```text
+Internal status: PENDING
+Bank status: SUCCESS
+```
+
+The reconciliation system updates the internal record to `SUCCESS`.
+
+This is important because payment systems can experience network failures, delayed callbacks, and inconsistent intermediate states.
+
+---
+
+# 14. Security requirements
+
+The system should implement:
+
+1. HTTPS for communication.
+2. Authentication using secure tokens.
+3. Authorization for user-specific transactions.
+4. Encryption of sensitive information.
+5. Rate limiting.
+6. Device and transaction risk checks.
+7. Audit logs.
+8. Secure secret management.
+9. Protection against replay attacks.
+10. No storage of UPI PIN in the application database.
+
+Payment systems must also follow applicable banking, privacy, and regulatory requirements.
+
+---
+
+# 15. API design
+
+## Create payment
+
+```http
+POST /api/payments
+```
+
+Request:
+
+```json
+{
+  "receiverUpiId": "shop@upi",
+  "amount": 500,
+  "idempotencyKey": "REQ-12345"
+}
+```
+
+Response:
+
+```json
+{
+  "transactionId": "TXN1001",
+  "status": "PENDING"
+}
+```
+
+## Get payment status
+
+```http
+GET /api/payments/TXN1001
+```
+
+Response:
+
+```json
+{
+  "transactionId": "TXN1001",
+  "status": "SUCCESS",
+  "amount": 500
+}
+```
+
+## Transaction history
+
+```http
+GET /api/transactions?page=1&limit=20
+```
+
+Use pagination instead of returning all transactions at once.
+
+---
+
+# 16. Important system design concepts used
+
+| Concept              | Usage in PhonePe                                 |
+| -------------------- | ------------------------------------------------ |
+| Load Balancer        | Distributes incoming traffic                     |
+| Auto Scaling         | Adds backend servers during traffic spikes       |
+| Database Replication | Improves availability and read capacity          |
+| Sharding             | Distributes large datasets                       |
+| Redis                | Caching and temporary data                       |
+| Message Queue        | Asynchronous processing                          |
+| Idempotency          | Prevents duplicate payments                      |
+| Distributed Lock     | Coordinates shared operations                    |
+| Eventual Consistency | Updates history and notifications asynchronously |
+| Circuit Breaker      | Handles unavailable dependencies                 |
+| Retry with Backoff   | Handles temporary failures                       |
+| Reconciliation       | Corrects payment-status mismatches               |
+| Monitoring           | Detects errors and latency                       |
+
+---
+
+# 17. Interview explanation in 2 minutes
+
+You can explain it like this:
+
+> I would design PhonePe as a distributed payment system with a mobile application, API Gateway, user service, payment service, transaction database, UPI connector, and notification service.
+>
+> When a user makes a payment, the payment service validates the request and creates a transaction with `PENDING` status. It then sends the request through the PSP bank and NPCI UPI network. After receiving the final response, the system updates the transaction to `SUCCESS`, `FAILED`, or keeps it `PENDING` if the result is unknown.
+>
+> To prevent duplicate payments, I would use an idempotency key and a unique database constraint. For reliability, I would use retries, status checks, reconciliation jobs, and idempotent callback processing.
+>
+> For scalability, I would use load balancing, horizontal scaling, caching, queues, database replication, and sharding. I would also implement authentication, encryption, rate limiting, fraud checks, and detailed monitoring.
+
+---
+
+# 18. Key points to remember
+
+```text
+Payment system = Correctness + Reliability + Security + Scalability
+```
+
+Most important interview points:
+
+1. Never blindly retry a payment.
+2. Always support `PENDING` and `UNKNOWN` statuses.
+3. Use idempotency to prevent duplicate payments.
+4. Store transaction state durably.
+5. Use reconciliation for mismatched records.
+6. Do not depend only on a mutex for financial consistency.
+7. External bank/NPCI systems are dependencies and can fail.
+8. Use asynchronous processing for notifications and analytics.
+9. Scale services horizontally.
+10. Protect sensitive financial and user data.
+
+PhonePe has also publicly highlighted the importance of handling interrupted transactions, partner delays, double taps, and network lag while maintaining a reliable user experience. ([design.phonepe.com][3])
+
+[1]: https://www.phonepe.com/terms-conditions/upi/?utm_source=chatgpt.com "PhonePe - Terms of Use of PhonePe UPI"
+[2]: https://www.phonepe.com/blog/payments/building-digital-payments-shaping-bharats-future-the-phonepe-story/?utm_source=chatgpt.com "Building Digital Payments & Shaping Bharat’s Future: The PhonePe Story"
+[3]: https://design.phonepe.com/stories/role-of-design-at-scale?utm_source=chatgpt.com "What does Design mean at scale? | PhonePe Design"
