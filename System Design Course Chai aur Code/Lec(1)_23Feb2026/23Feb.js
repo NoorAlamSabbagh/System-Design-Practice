@@ -4,6 +4,13 @@
 // * Enables real-time bidirectional communication between client and server.
 // * Starts with HTTP handshake → upgrades to WebSocket.
 // * Connection remains open until closed by client/server.
+// WebSocket is used when we need real-time, two-way communication between the client and server. Unlike normal HTTP, where the client usually sends a request and waits for a response, WebSocket keeps a connection open so both sides can send data whenever needed. For example, in a chat application, 
+// when one user sends a message, the server can immediately push that message to the other user without the other user repeatedly requesting new messages.
+// It is commonly used for chat apps, live notifications, online games, live scores, and real-time dashboards.
+// Interview answer:
+// > “We use WebSocket when our application needs real-time communication. It keeps a connection open between the client and server, 
+//   allowing both sides to send data instantly without repeatedly making HTTP requests. For example, in a chat application, 
+//   when one user sends a message, the server can immediately push it to the other user.”
 
 // ## 🎯 2️⃣🏗️ Common Use Cases
 // * Chat systems (WhatsApp-like apps)
